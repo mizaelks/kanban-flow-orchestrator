@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
 import { Stage, Opportunity } from "@/types";
@@ -9,7 +8,6 @@ import { AddTaskDialog } from "../opportunity/AddTaskDialog";
 import { AddFieldDialog } from "../opportunity/AddFieldDialog";
 import StageHeader from "./StageHeader";
 import StageOpportunityList from "./StageOpportunityList";
-import { opportunityAPI } from "@/services/api";
 
 interface StageColumnProps {
   stage: Stage;
@@ -41,14 +39,14 @@ const StageColumn = ({
   };
 
   const handleOpportunityUpdated = (updatedOpportunity: Opportunity) => {
-    console.log('Opportunity updated in StageColumn - propagating:', updatedOpportunity);
+    console.log('Opportunity updated in StageColumn:', updatedOpportunity);
     if (onOpportunityUpdated) {
       onOpportunityUpdated(updatedOpportunity);
     }
   };
 
   const handleOpportunityDeleted = (opportunityId: string) => {
-    console.log('Opportunity deleted in StageColumn - propagating:', opportunityId);
+    console.log('Opportunity deleted in StageColumn:', opportunityId);
     if (onOpportunityDeleted) {
       onOpportunityDeleted(opportunityId);
     }
@@ -71,38 +69,27 @@ const StageColumn = ({
     setIsAddFieldDialogOpen(true);
   };
 
-  const handleTaskAdded = async () => {
-    // Refresh opportunity data to get updated tasks
-    if (selectedOpportunityForAction) {
-      try {
-        const refreshedOpportunity = await opportunityAPI.getById(selectedOpportunityForAction.id);
-        if (refreshedOpportunity && onOpportunityUpdated) {
-          onOpportunityUpdated(refreshedOpportunity);
-        }
-      } catch (error) {
-        console.error('Error refreshing opportunity after task added:', error);
-      }
+  const handleTaskAdded = () => {
+    // Trigger opportunity refresh if callback exists
+    if (onOpportunityUpdated && selectedOpportunityForAction) {
+      // Re-fetch opportunity data to get updated tasks
+      handleOpportunityUpdated(selectedOpportunityForAction);
     }
   };
 
-  const handleFieldAdded = async () => {
-    // Refresh opportunity data to get updated fields
-    if (selectedOpportunityForAction) {
-      try {
-        const refreshedOpportunity = await opportunityAPI.getById(selectedOpportunityForAction.id);
-        if (refreshedOpportunity && onOpportunityUpdated) {
-          onOpportunityUpdated(refreshedOpportunity);
-        }
-      } catch (error) {
-        console.error('Error refreshing opportunity after field added:', error);
-      }
+  const handleFieldAdded = () => {
+    // Trigger opportunity refresh if callback exists
+    if (onOpportunityUpdated && selectedOpportunityForAction) {
+      // Re-fetch opportunity data to get updated fields
+      handleOpportunityUpdated(selectedOpportunityForAction);
     }
   };
 
-  const handleOpportunityCreatedSuccess = (newOpportunity: Opportunity) => {
-    console.log('Opportunity created in StageColumn - propagating:', newOpportunity);
+  const handleOpportunityCreatedSuccess = () => {
     setIsCreateDialogOpen(false);
-    onOpportunityCreated(newOpportunity);
+    // Since CreateOpportunityDialog doesn't provide the created opportunity,
+    // we'll need to trigger a refresh through the parent component
+    // The parent will handle re-fetching the opportunities for this stage
   };
   
   return (
